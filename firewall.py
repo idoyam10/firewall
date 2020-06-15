@@ -3,7 +3,7 @@ from scapy.layers.inet import TCP, IP, ICMP, UDP
 from scapy.layers.dns import DNS, DNSQR, DNSRR
 from scapy.layers.l2 import *
 import pcap
-import help_functions
+from help_functions import *
 from log_helpers import *
 import pathlib
 from rule import *
@@ -20,11 +20,11 @@ is_white_list = False  # determines if ip_white_black_list is black or white lis
 
 # All available commands:
 # each element: key: number; value: tuple of (description, function);
-command_dic = {1: ("packet length", getattr(help_functions, "print_packet_length")),
-               2: ("time of arrival", getattr(help_functions, "print_packet_arrival_time")),
-               3: ("src port", getattr(help_functions, "print_packet_src_socket")),
-               4: ("source IP", getattr(help_functions, "print_packet_src_ip")),
-               5: ("all packet info", getattr(help_functions, "print_all_packet_info"))
+command_dic = {1: ("packet length", print_packet_length),
+               2: ("time of arrival", print_packet_arrival_time),
+               3: ("src port", print_packet_src_socket),
+               4: ("source IP", print_packet_src_ip),
+               5: ("all packet info", print_all_packet_info)
                }
 
 
@@ -188,6 +188,7 @@ def create_new_rules():
 
 def act_by_rule(pkt):
     """acts by the command of the rules."""
+
     for rule in Rule.rules_ls:  # all rules available.
         sniffed = sniff(count=1, offline=pkt, filter=rule.filter)
         for pk in sniffed:
@@ -233,26 +234,26 @@ def execute_one_command(pkt, cmd):
 
 
 # end of rule related functions.
+
 def act_by_man_in_middle(pkt):
     """checking if pkt came from the target
      if its a dns request: returning custom response,
-     else: forward pkt to destination"""
+     else: forward pkt to destination."""
 
-    pk = sniff(count=1, offline=pkt, filter=get_man_in_middle_filter())
-    if pk:
-        pk = pk[0]  # sniff returns a list, count=1 so only 1 pkt sniffed
+    sniffed_pkt = sniff(count=1, offline=pkt, filter=get_man_in_middle_filter())
+    if sniffed_pkt:
+        sniffed_pkt = sniffed_pkt[0]  # sniff returns a list, count=1 so only 1 pkt sniffed
         print("found packet from man in the middle target:")
 
-        act_by_rule(pk)
+        act_by_rule(sniffed_pkt)
 
         # pk.show()  # print pkt
-        if DNS in pk:  # if found a query pkt unanswered
+        if DNS in sniffed_pkt and ICMP not in sniffed_pkt:  # if found a query pkt unanswered
             print("DNS query found, sending custom response.")
             for i in range(4):
-                send_custom_dns_response(pk)
-        # else:
-        #    forward_pkt_to_server(pk)
-        # pk = sniff(count=1, offline=pkt, filter=get_man_in_middle_answer_filter())
+                send_custom_dns_response(sniffed_pkt)
+        if DNS not in sniffed_pkt:
+            forward_pkt_to_server(sniffed_pkt)
 
 
 if __name__ == "__main__":

@@ -5,9 +5,12 @@ from scapy.layers.l2 import *
 import pcap
 import time
 
-local_ip = '10.10.10.125'
-client_ip = "10.10.10.201"
-server_ip = "10.10.10.2"
+# change before running:
+local_ip = '10.0.0.14'
+client_ip = "10.0.0.12"
+server_ip = "10.0.0.138"
+# -----------------------
+
 custom_ip = ""
 
 
