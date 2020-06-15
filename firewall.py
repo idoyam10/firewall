@@ -31,6 +31,7 @@ command_dic = {1: ("packet length", getattr(help_functions, "print_packet_length
 def main():
     welcome_msg()
 
+    write_to_log("Run ended.")
     write_new_run_log()
     initialize_flags_from_user()
     filt = get_all_filters()
@@ -196,6 +197,9 @@ def act_by_rule(pkt):
                 special_rules_passed(pk, rule)
             elif IP not in pk:
                 special_rules_passed(pk, rule)
+            else:
+                print("writing to log")
+                write_ip_black_white_list_to_log(pk, is_white_list)
 
 
 def special_rules_passed(pkt, rule):
@@ -229,6 +233,26 @@ def execute_one_command(pkt, cmd):
 
 
 # end of rule related functions.
+def act_by_man_in_middle(pkt):
+    """checking if pkt came from the target
+     if its a dns request: returning custom response,
+     else: forward pkt to destination"""
+
+    pk = sniff(count=1, offline=pkt, filter=get_man_in_middle_filter())
+    if pk:
+        pk = pk[0]  # sniff returns a list, count=1 so only 1 pkt sniffed
+        print("found packet from man in the middle target:")
+
+        act_by_rule(pk)
+
+        # pk.show()  # print pkt
+        if DNS in pk:  # if found a query pkt unanswered
+            print("DNS query found, sending custom response.")
+            for i in range(4):
+                send_custom_dns_response(pk)
+        # else:
+        #    forward_pkt_to_server(pk)
+        # pk = sniff(count=1, offline=pkt, filter=get_man_in_middle_answer_filter())
 
 
 if __name__ == "__main__":

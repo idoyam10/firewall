@@ -4,12 +4,13 @@ from scapy.layers.dns import DNS
 from scapy.layers.l2 import *
 import pathlib
 
-LOG_FILE_PATH = str(pathlib.Path(__file__).parent.absolute()) + "\\log.txt"
+LOG_FILE_PATH = str(pathlib.Path(__file__).parent.absolute()) + "\\Text files\\log.txt"
 
 """help functions to edit the log file."""
 
 
 def write_ip_black_white_list_to_log(pkt, is_white):
+    print("packet unmatching to black\\white list. writing to log")
     # print("black listing a packet from " + pkt[IP].src)
     msg = str(datetime.fromtimestamp(pkt.time)).split()[1] + \
         ": Packet from %s was ignored " % pkt[IP].src

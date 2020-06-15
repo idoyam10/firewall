@@ -1,4 +1,3 @@
-import firewall
 import pathlib
 
 RULES_FILE_PATH = str(pathlib.Path(__file__).parent.absolute()) + "\\config.txt"

